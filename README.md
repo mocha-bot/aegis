@@ -13,26 +13,33 @@ aegis scan
 
 ```
 LEVEL      RESOURCE                       ACTION       FILE                                      LINE  RULE
-ui         api:packages                   delete       apps/ops-dash/src/pages/Packages.tsx        42  react-can-single
-api        api:packages                   read         monorepo/handler/http/packages.go           15  go-check-any
-ui         api:transactions               read         apps/ops-dash/src/pages/Transactions.tsx    28  react-can-single
-api        api:vouchers                   create       monorepo/handler/http/vouchers.go           67  go-check-any
+api        api:packages                   read         backend/handler/packages.go                 15  go-check-any
+api        api:vouchers                   create       backend/handler/vouchers.go                 67  go-check-any
+api        api:documents                  delete       backend/services/documents.py              42  python-guard
+ui         api:transactions               read         frontend/pages/Transactions.tsx             28  react-can
+ui         api:packages                   delete       frontend/pages/Packages.tsx                 12  react-can
+api        cms:articles                   publish      backend/app/Gates/ArticlePolicy.php        33  laravel-gate
 
-4 permissions found.
+6 permissions found — 3 backend, 2 frontend, 1 PHP.
 ```
 
 ## Why Aegis?
 
-Permissions drift. Developers add `<Can object="..." action="...">` and `CheckAny(...)` calls across the codebase. Ops can't assign what they don't know exists. Aegis closes the loop:
+Permissions drift. Developers add permission checks across every layer — React components, Go handlers, Python services, Laravel policies. Ops can't assign what they don't know exists. Aegis closes the loop:
 
 ```
-you write code          aegis scans it        you register in catalog        ops assigns to roles
-     │                       │                       │                            │
-     ▼                       ▼                       ▼                            ▼
-<Can object=         →   UNREGISTERED:       →   rbac_catalog.go            →  ☑ api:webhooks
-"api:webhooks"           api:webhooks:read       +{LevelKey: "api",             :read granted
-action="read">                                    Key: "webhooks",              to editor role
-                                                  Actions: ["read"]}
+you write code              aegis scans it         you register in catalog       ops assigns to roles
+     │                           │                        │                           │
+     ▼                           ▼                        ▼                           ▼
+CheckAny(ctx, roles,     →   UNREGISTERED:        →   rbac_catalog.go           →  ☑ api:webhooks
+"api:webhooks",               api:webhooks:read        +{LevelKey: "api",            :read granted
+"read")                                                 Key: "webhooks",
+                                                        Actions: ["read"]}
+Gate::allows(             →   UNREGISTERED:        →   {LevelKey: "api",         →  ☑ cms:articles
+'publish-article')             cms:articles:publish    Key: "articles",              :publish granted
+                                                        Actions: ["publish"]}
+
+Any language. Any pattern. One config file.
 ```
 
 ## Features

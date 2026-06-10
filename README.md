@@ -4,9 +4,9 @@
 
 High-performance authorization pattern scanner. Extracts RBAC/ACL/ABAC/Others permission checks from source code, diffs against your catalog, fails CI if unregistered. Model-agnostic via regex config.
 
----
+It reads your source code, extracts every permission check  -- RBAC, ACL, ABAC, or custom  -- and tells you what's missing from your catalog. No more guessing which permissions your app needs.
 
-Aegis is a high-performance authorization pattern scanner. It reads your source code, extracts every permission check  -- RBAC, ACL, ABAC, or custom  -- and tells you what's missing from your catalog. No more guessing which permissions your app needs.
+
 
 [![Rust](https://img.shields.io/badge/built%20with-Rust-orange)](https://www.rust-lang.org/)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
@@ -49,12 +49,29 @@ Any language. Any pattern. One config file.
 ## Features
 
 - **Language-agnostic.** Config-driven via `.aegis.yaml`. Works with any language, any framework.
-- **Multi-permission aware.** Detects `<Can all={[...]}>` and `<Can any={[...]}>`  -- extracts every permission from compound checks.
+- **Multi-permission aware.** Detects multi-permission components (e.g., `<Can all={[...]}>`, `<Can any={[...]}>`)  -- extracts every permission from compound checks.
 - **CI-ready.** `aegis lint` exits 1 if code references permissions not in your catalog. Block merges with missing permissions.
 - **Blazing fast.** Rust + rayon parallel scanning. Handles monorepos with thousands of files.
 - **Multiple output formats.** Table, CSV, JSON, catalog-json (ready to POST to your RBAC API).
 
 ## Install
+
+**Pre-built binary** (Linux, macOS, Windows):
+
+```bash
+# macOS arm64
+curl -fsSL https://github.com/mocha-bot/aegis/releases/latest/download/aegis-macos-arm64 -o aegis
+
+# Linux amd64
+curl -fsSL https://github.com/mocha-bot/aegis/releases/latest/download/aegis-linux-amd64 -o aegis
+
+# Windows
+curl -fsSL https://github.com/mocha-bot/aegis/releases/latest/download/aegis-windows-amd64.exe -o aegis.exe
+
+chmod +x aegis && sudo mv aegis /usr/local/bin/
+```
+
+**Cargo:**
 
 ```bash
 cargo install --git https://github.com/mocha-bot/aegis

@@ -1,9 +1,9 @@
+mod api;
 mod cli;
 mod config;
 mod pattern;
 mod reporter;
 mod scanner;
-mod api;
 
 use clap::Parser;
 use cli::{Cli, Commands, Format};
@@ -30,9 +30,9 @@ fn run(cli: Cli) -> Result<i32, Box<dyn std::error::Error>> {
             format,
             ignore_rules,
         } => {
-            let root_path = root.map(PathBuf::from).unwrap_or_else(|| {
-                std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
-            });
+            let root_path = root
+                .map(PathBuf::from)
+                .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
 
             let (_, aegis_config) = match config {
                 Some(ref path) => {
@@ -53,9 +53,9 @@ fn run(cli: Cli) -> Result<i32, Box<dyn std::error::Error>> {
         }
 
         Commands::Diff { api, config, root } => {
-            let root_path = root.map(PathBuf::from).unwrap_or_else(|| {
-                std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
-            });
+            let root_path = root
+                .map(PathBuf::from)
+                .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
 
             let (_, aegis_config) = match config {
                 Some(ref path) => {
@@ -86,9 +86,9 @@ fn run(cli: Cli) -> Result<i32, Box<dyn std::error::Error>> {
             root,
             ignore_rules,
         } => {
-            let root_path = root.map(PathBuf::from).unwrap_or_else(|| {
-                std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
-            });
+            let root_path = root
+                .map(PathBuf::from)
+                .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
 
             let (_, aegis_config) = match config {
                 Some(ref path) => {

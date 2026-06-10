@@ -1,6 +1,6 @@
+use crate::config::{CaptureMode, PatternDef};
 use regex::Regex;
 use serde::Serialize;
-use crate::config::{CaptureMode, PatternDef};
 
 #[derive(Debug, Clone)]
 pub struct CompiledPattern {
@@ -221,7 +221,7 @@ mod tests {
 
     #[test]
     fn test_no_match_returns_empty() {
-        let compiled = compile_single(r#"<Can\s+object="(?P<object>[^"]+)"# , "ui");
+        let compiled = compile_single(r#"<Can\s+object="(?P<object>[^"]+)"#, "ui");
         let content = "regular text without permissions";
         let results = extract_matches(content, 1, &compiled, "file.ts");
         assert!(results.is_empty());

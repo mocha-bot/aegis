@@ -14,6 +14,7 @@ pub enum ConfigError {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct AegisConfig {
+    #[allow(dead_code)]
     pub version: u8,
     pub rules: Vec<ScanRule>,
 }
@@ -84,7 +85,10 @@ rules:
         assert_eq!(config.rules.len(), 1);
         assert_eq!(config.rules[0].id, "test-rule");
         assert_eq!(config.rules[0].patterns[0].level, "ui");
-        assert_eq!(config.rules[0].patterns[0].capture_mode, CaptureMode::Single);
+        assert_eq!(
+            config.rules[0].patterns[0].capture_mode,
+            CaptureMode::Single
+        );
     }
 
     #[test]
@@ -101,7 +105,10 @@ rules:
         sub_pattern: 'object:\s*"(?P<object>[^"]+)"'
 "#;
         let config: AegisConfig = serde_yaml::from_str(yaml).unwrap();
-        assert_eq!(config.rules[0].patterns[0].capture_mode, CaptureMode::Repeated);
+        assert_eq!(
+            config.rules[0].patterns[0].capture_mode,
+            CaptureMode::Repeated
+        );
         assert!(config.rules[0].patterns[0].sub_pattern.is_some());
     }
 }

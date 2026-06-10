@@ -1,5 +1,5 @@
-use serde::Deserialize;
 use crate::pattern::ScanResult;
+use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 struct CatalogResponse {
@@ -7,12 +7,14 @@ struct CatalogResponse {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 struct CatalogData {
     resources: Option<Vec<CatalogResource>>,
     permissions: Option<Vec<CatalogPermission>>,
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 struct CatalogResource {
     #[serde(alias = "levelKey", alias = "level_key")]
     level_key: String,

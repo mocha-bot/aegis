@@ -7,11 +7,7 @@ use walkdir::WalkDir;
 use crate::config::AegisConfig;
 use crate::pattern::{CompiledPattern, ScanResult};
 
-pub fn scan(
-    config: &AegisConfig,
-    root: &Path,
-    ignore_rules: &[String],
-) -> Vec<ScanResult> {
+pub fn scan(config: &AegisConfig, root: &Path, ignore_rules: &[String]) -> Vec<ScanResult> {
     let compiled: Vec<(Vec<String>, Vec<CompiledPattern>)> = config
         .rules
         .iter()
@@ -70,14 +66,7 @@ pub fn scan(
 
             applicable
                 .iter()
-                .flat_map(|cp| {
-                    crate::pattern::extract_matches(
-                        &content,
-                        0,
-                        cp,
-                        &relative_str,
-                    )
-                })
+                .flat_map(|cp| crate::pattern::extract_matches(&content, 0, cp, &relative_str))
                 .collect::<Vec<_>>()
         })
         .collect()
@@ -110,7 +99,8 @@ mod tests {
                     id: "react-can".to_string(),
                     files: vec!["**/*.tsx".to_string()],
                     patterns: vec![PatternDef {
-                        regex: r#"<Can\s+object="(?P<object>[^"]+)"\s+action="(?P<action>[^"]+)"#.to_string(),
+                        regex: r#"<Can\s+object="(?P<object>[^"]+)"\s+action="(?P<action>[^"]+)"#
+                            .to_string(),
                         level: "ui".to_string(),
                         capture_mode: CaptureMode::Single,
                         sub_pattern: None,
@@ -120,7 +110,8 @@ mod tests {
                     id: "go-check".to_string(),
                     files: vec!["**/*.go".to_string()],
                     patterns: vec![PatternDef {
-                        regex: r#"CheckAny\(.*?,\s*"(?P<object>[^"]+)",\s*"(?P<action>[^"]+)"\)"#.to_string(),
+                        regex: r#"CheckAny\(.*?,\s*"(?P<object>[^"]+)",\s*"(?P<action>[^"]+)"\)"#
+                            .to_string(),
                         level: "api".to_string(),
                         capture_mode: CaptureMode::Single,
                         sub_pattern: None,
@@ -179,11 +170,7 @@ mod tests {
             r#"<Can object="api:test" action="read">"#,
         );
 
-        let results = scan(
-            &test_config(),
-            dir.path(),
-            &["react-can".to_string()],
-        );
+        let results = scan(&test_config(), dir.path(), &["react-can".to_string()]);
         assert!(results.is_empty());
     }
 }

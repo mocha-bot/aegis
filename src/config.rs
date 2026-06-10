@@ -8,7 +8,7 @@ pub enum ConfigError {
     Io(#[from] std::io::Error),
     #[error("YAML parse error: {0}")]
     Yaml(#[from] serde_yaml::Error),
-    #[error("No .rbacscan.yaml found walking up from {}", .0.display())]
+    #[error("No .aegis.yaml found walking up from {}", .0.display())]
     NotFound(PathBuf),
 }
 
@@ -47,7 +47,7 @@ pub fn discover_config(start_dir: &Path) -> Result<(PathBuf, AegisConfig), Confi
     let mut current = Some(start_dir.to_path_buf());
 
     while let Some(dir) = current {
-        let candidate = dir.join(".rbacscan.yaml");
+        let candidate = dir.join(".aegis.yaml");
         if candidate.exists() {
             let content = std::fs::read_to_string(&candidate)?;
             let config: AegisConfig = serde_yaml::from_str(&content)?;

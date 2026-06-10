@@ -48,7 +48,7 @@ Any language. Any pattern. One config file.
 
 ## Features
 
-- **Language-agnostic.** Config-driven via `.rbacscan.yaml`. Works with any language, any framework.
+- **Language-agnostic.** Config-driven via `.aegis.yaml`. Works with any language, any framework.
 - **Multi-permission aware.** Detects `<Can all={[...]}>` and `<Can any={[...]}>`  -- extracts every permission from compound checks.
 - **CI-ready.** `aegis lint` exits 1 if code references permissions not in your catalog. Block merges with missing permissions.
 - **Blazing fast.** Rust + rayon parallel scanning. Handles monorepos with thousands of files.
@@ -71,7 +71,7 @@ cargo build --release
 
 ## Quick start
 
-Drop a `.rbacscan.yaml` in your repo root:
+Drop a `.aegis.yaml` in your repo root:
 
 ```yaml
 version: 1
@@ -115,7 +115,7 @@ aegis lint --api https://...   # CI gate  -- fails if anything missing
 
 | Flag | Description |
 |------|-------------|
-| `--config <path>` | Path to `.rbacscan.yaml` (auto-discovered if omitted) |
+| `--config <path>` | Path to `.aegis.yaml` (auto-discovered if omitted) |
 | `--root <path>` | Root directory to scan (default: cwd) |
 | `--format table\|csv\|json\|catalog-json` | Output format |
 | `--ignore-rule <id>` | Skip a specific rule (repeatable) |
@@ -140,13 +140,13 @@ Aegis is **model-agnostic**. It doesn't care whether you use RBAC, ACL, ABAC, Re
 | Model | Example pattern | Config |
 |-------|----------------|--------|
 | **RBAC** | `<Can object="api:packages" action="delete">` | Built-in rules |
-| **ACL** | `$acl->check($user, 'resource', 'write')` | Add regex in `.rbacscan.yaml` |
+| **ACL** | `$acl->check($user, 'resource', 'write')` | Add regex in `.aegis.yaml` |
 | **ABAC** | `@rbac api:documents:read` (annotation) | Built-in annotation rule |
 | **Laravel Gate** | `Gate::allows('update-post', $post)` | Add regex |
 | **Django Guard** | `user.has_perm('app.delete_model')` | Add regex |
 | **Custom** | Anything your codebase uses | Write a regex |
 
-The scanner is a dumb pattern matcher  -- smart enough to extract what you tell it to, dumb enough to work with anything. Add rules to `.rbacscan.yaml` and Aegis handles the rest.
+The scanner is a dumb pattern matcher  -- smart enough to extract what you tell it to, dumb enough to work with anything. Add rules to `.aegis.yaml` and Aegis handles the rest.
 
 ## How it works
 

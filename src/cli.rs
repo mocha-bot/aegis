@@ -11,7 +11,7 @@ pub struct Cli {
 pub enum Commands {
     /// Scan source code for RBAC permission usage
     Scan {
-        /// Path to .rbacscan.yaml config file
+        /// Path to .aegis.yaml config file
         #[arg(short, long)]
         config: Option<String>,
 
@@ -34,7 +34,7 @@ pub enum Commands {
         #[arg(long)]
         api: String,
 
-        /// Path to .rbacscan.yaml config file
+        /// Path to .aegis.yaml config file
         #[arg(short, long)]
         config: Option<String>,
 
@@ -49,7 +49,7 @@ pub enum Commands {
         #[arg(long)]
         api: String,
 
-        /// Path to .rbacscan.yaml config file
+        /// Path to .aegis.yaml config file
         #[arg(short, long)]
         config: Option<String>,
 

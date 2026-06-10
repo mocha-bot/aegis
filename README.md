@@ -2,7 +2,7 @@
 
 > *Know what your code demands.*
 
-Aegis is a high-performance RBAC permission scanner. It reads your source code, extracts every permission check, and tells you what's missing from your catalog. No more guessing which permissions your app needs.
+Aegis is a high-performance authorization pattern scanner. It reads your source code, extracts every permission check — RBAC, ACL, ABAC, or custom — and tells you what's missing from your catalog. No more guessing which permissions your app needs.
 
 [![Rust](https://img.shields.io/badge/built%20with-Rust-orange)](https://www.rust-lang.org/)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
@@ -108,6 +108,34 @@ aegis lint --api https://...   # CI gate — fails if anything missing
 | `--root <path>` | Root directory to scan (default: cwd) |
 | `--format table\|csv\|json\|catalog-json` | Output format |
 | `--ignore-rule <id>` | Skip a specific rule (repeatable) |
+
+## Performance
+
+Benchmarked against a synthetic monorepo — 272 files, 33,697 lines, scattered permission checks:
+
+| Metric | Cold start | Warm (OS cache) |
+|--------|-----------|-----------------|
+| Scan time | ~700ms | **~10ms** |
+| Permissions found | 6,865 | 6,865 |
+| Files/sec | ~380 | ~27,200 |
+| Lines/sec | ~47,000 | ~3,370,000 |
+
+Release build, Apple M-series. Warm runs saturate at ~10ms — the bottleneck becomes regex compilation, not I/O.
+
+## Authorization models
+
+Aegis is **model-agnostic**. It doesn't care whether you use RBAC, ACL, ABAC, ReBAC, or a custom policy engine. It just matches patterns.
+
+| Model | Example pattern | Config |
+|-------|----------------|--------|
+| **RBAC** | `<Can object="api:packages" action="delete">` | Built-in rules |
+| **ACL** | `$acl->check($user, 'resource', 'write')` | Add regex in `.rbacscan.yaml` |
+| **ABAC** | `@rbac api:documents:read` (annotation) | Built-in annotation rule |
+| **Laravel Gate** | `Gate::allows('update-post', $post)` | Add regex |
+| **Django Guard** | `user.has_perm('app.delete_model')` | Add regex |
+| **Custom** | Anything your codebase uses | Write a regex |
+
+The scanner is a dumb pattern matcher — smart enough to extract what you tell it to, dumb enough to work with anything. Add rules to `.rbacscan.yaml` and Aegis handles the rest.
 
 ## How it works
 

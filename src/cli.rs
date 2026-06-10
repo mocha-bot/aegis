@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand, ValueEnum};
 
 #[derive(Parser)]
-#[command(name = "aegis", version, about = "Agnostic RBAC permission scanner")]
+#[command(name = "aegis", version, about = "Agnostic authorization pattern scanner")]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,
@@ -9,7 +9,7 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Commands {
-    /// Scan source code for RBAC permission usage
+    /// Scan source code for authorization permission usage
     Scan {
         /// Path to .aegis.yaml config file
         #[arg(short, long)]
@@ -28,9 +28,9 @@ pub enum Commands {
         ignore_rules: Vec<String>,
     },
 
-    /// Show permissions used in code but missing from RBAC catalog
+    /// Show permissions used in code but missing from authorization catalog
     Diff {
-        /// RBAC API base URL
+        /// Authorization API base URL
         #[arg(long)]
         api: String,
 
@@ -45,7 +45,7 @@ pub enum Commands {
 
     /// CI gate — exit 1 if any permission used in code is missing from catalog
     Lint {
-        /// RBAC API base URL
+        /// Authorization API base URL
         #[arg(long)]
         api: String,
 

@@ -3,7 +3,7 @@ name = "aegis"
 version = "0.0.1"
 edition = "2021"
 authors = ["Muhammad Wildan Aldiansyah <aldiwild77@gmail.com>"]
-description = "Agnostic RBAC permission scanner — extracts object/action pairs from source code"
+description = "Agnostic authorization pattern scanner"
 
 [[bin]]
 name = "aegis"

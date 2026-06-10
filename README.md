@@ -52,7 +52,7 @@ Any language. Any pattern. One config file.
 - **Multi-permission aware.** Detects multi-permission components (e.g., `<Can all={[...]}>`, `<Can any={[...]}>`)  -- extracts every permission from compound checks.
 - **CI-ready.** `aegis lint` exits 1 if code references permissions not in your catalog. Block merges with missing permissions.
 - **Blazing fast.** Rust + rayon parallel scanning. Handles monorepos with thousands of files.
-- **Multiple output formats.** Table, CSV, JSON, catalog-json (ready to POST to your RBAC API).
+- **Multiple output formats.** Table, CSV, JSON, catalog-json (ready to POST to your authorization API).
 
 ## Install
 
@@ -207,10 +207,10 @@ This turns `<Can any={[{object: "a:b", action: "c"}, {object: "d:e", action: "f"
 # .github/workflows/rbac-lint.yml
 - name: Check permissions registered
   run: |
-    aegis lint --api ${{ vars.RBAC_API_URL }}
+    aegis lint --api ${{ vars.AEGIS_API_URL }}
 ```
 
-Fails the build if any permission referenced in code is missing from the RBAC catalog. Forces developers to register permissions before merging.
+Fails the build if any permission referenced in code is missing from the authorization catalog. Forces developers to register permissions before merging.
 
 ## License
 

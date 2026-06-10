@@ -40,13 +40,18 @@ pub struct ScanResult {
 
 pub fn extract_matches(
     content: &str,
-    line_num: usize,
+    _line_num: usize,
     compiled: &CompiledPattern,
     file_path: &str,
 ) -> Vec<ScanResult> {
     let mut results = Vec::new();
 
     for caps in compiled.regex.captures_iter(content) {
+        let line = caps
+            .get(0)
+            .map(|m| byte_to_line(content, m.start()))
+            .unwrap_or(1);
+
         match compiled.capture_mode {
             CaptureMode::Single => {
                 let object = caps.name("object").map(|m| m.as_str().to_string());
@@ -60,14 +65,13 @@ pub fn extract_matches(
                         resource: object,
                         action,
                         source_file: file_path.to_string(),
-                        source_line: line_num,
+                        source_line: line,
                         rule_id: compiled.rule_id.clone(),
                     });
                 }
             }
             CaptureMode::Repeated => {
                 if let Some(sub_re) = &compiled.sub_regex {
-                    // The outer regex captures a block; apply sub_regex to find all pairs
                     let block = caps.get(0).map(|m| m.as_str()).unwrap_or("");
                     for sub_caps in sub_re.captures_iter(block) {
                         let object = sub_caps.name("object").map(|m| m.as_str().to_string());
@@ -81,7 +85,7 @@ pub fn extract_matches(
                                 resource: object,
                                 action,
                                 source_file: file_path.to_string(),
-                                source_line: line_num,
+                                source_line: line,
                                 rule_id: compiled.rule_id.clone(),
                             });
                         }
@@ -92,6 +96,13 @@ pub fn extract_matches(
     }
 
     results
+}
+
+fn byte_to_line(content: &str, byte_offset: usize) -> usize {
+    content[..byte_offset.min(content.len())]
+        .matches('\n')
+        .count()
+        + 1
 }
 
 fn resolve_level(default: &str, captured: Option<String>) -> String {
@@ -131,7 +142,7 @@ mod tests {
         assert_eq!(results[0].level, "ui");
         assert_eq!(results[0].resource, "api:packages");
         assert_eq!(results[0].action, "delete");
-        assert_eq!(results[0].source_line, 42);
+        assert_eq!(results[0].source_line, 1);
         assert_eq!(results[0].rule_id, "test");
     }
 
@@ -199,9 +210,9 @@ mod tests {
         let results = extract_matches(content, 42, &compiled, "Page.tsx");
 
         assert_eq!(results.len(), 2);
-        assert_eq!(results[0].source_line, 42);
-        assert_eq!(results[1].source_line, 42);
-        // Both share same source line — correct, they're in the same component
+        assert_eq!(results[0].source_line, 1);
+        assert_eq!(results[1].source_line, 1);
+        // Both share same source line — correct, they're in the same component (single-line content)
     }
 
     #[test]

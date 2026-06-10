@@ -1,7 +1,11 @@
 use clap::{Parser, Subcommand, ValueEnum};
 
 #[derive(Parser)]
-#[command(name = "aegis", version, about = "Agnostic authorization pattern scanner")]
+#[command(
+    name = "aegis",
+    version,
+    about = "Agnostic authorization pattern scanner"
+)]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,

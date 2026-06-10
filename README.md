@@ -3,7 +3,7 @@
 
 <p align="center">
      <img width="256" height="256" alt="aegis" src="https://github.com/user-attachments/assets/968ec822-1838-4b16-8ac8-f6f334f68114" />
-</div>
+</p>
 
 > *Know what your code demands.*
 

@@ -1,0 +1,52 @@
+version: 1
+
+rules:
+  - id: react-can-single
+    files: ["**/*.tsx", "**/*.jsx"]
+    patterns:
+      - regex: '<Can\s+object="(?P<object>[^"]+)"\s+action="(?P<action>[^"]+)"'
+        level: ui
+      - regex: '<Can\s+action="(?P<action>[^"]+)"\s+object="(?P<object>[^"]+)"'
+        level: ui
+
+  - id: react-use-permission
+    files: ["**/*.ts", "**/*.tsx"]
+    patterns:
+      - regex: 'usePermission\(["\x27](?P<object>[^"\x27]+)["\x27],\s*["\x27](?P<action>[^"\x27]+)["\x27]'
+        level: ui
+
+  - id: react-can-all
+    files: ["**/*.tsx", "**/*.jsx"]
+    patterns:
+      - regex: '<Can\s+all=\{\[\s*((?:\{[^}]+\},?\s*)+)\]'
+        capture_mode: repeated
+        sub_pattern: '\{object:\s*"(?P<object>[^"]+)",\s*action:\s*"(?P<action>[^"]+)"\}'
+        level: ui
+
+  - id: react-can-any
+    files: ["**/*.tsx", "**/*.jsx"]
+    patterns:
+      - regex: '<Can\s+any=\{\[\s*((?:\{[^}]+\},?\s*)+)\]'
+        capture_mode: repeated
+        sub_pattern: '\{object:\s*"(?P<object>[^"]+)",\s*action:\s*"(?P<action>[^"]+)"\}'
+        level: ui
+
+  - id: go-check-any
+    files: ["**/*.go"]
+    patterns:
+      - regex: 'CheckAny\(.*?,\s*"(?P<object>[^"]+)",\s*"(?P<action>[^"]+)"\)'
+        level: api
+
+  - id: go-permission-slice
+    files: ["**/*.go"]
+    patterns:
+      - regex: 'permissions\s*:?=\s*\[\]Permission\{\s*((?:\{[^}]+\},?\s*)+)\}'
+        capture_mode: repeated
+        sub_pattern: '\{Object:\s*"(?P<object>[^"]+)",\s*Action:\s*"(?P<action>[^"]+)"\}'
+        level: api
+
+  - id: annotation
+    files: ["**/*"]
+    patterns:
+      - regex: '@rbac\s+(?P<level>\w+):(?P<object>[\w.-]+):(?P<action>\w+)'
+        level: "$level"

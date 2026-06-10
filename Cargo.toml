@@ -1,0 +1,25 @@
+[package]
+name = "aegis"
+version = "0.0.1"
+edition = "2021"
+authors = ["Muhammad Wildan Aldiansyah <aldiwild77@gmail.com>"]
+description = "Agnostic RBAC permission scanner — extracts object/action pairs from source code"
+
+[[bin]]
+name = "aegis"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+serde_yaml = "0.9"
+serde_json = "1"
+regex = "1"
+walkdir = "2"
+glob = "0.3"
+reqwest = { version = "0.12", features = ["blocking", "json"] }
+rayon = "1"
+thiserror = "2"
+
+[dev-dependencies]
+tempfile = "3"

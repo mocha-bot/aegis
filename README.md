@@ -2,6 +2,10 @@
 
 > *Know what your code demands.*
 
+High-performance authorization pattern scanner. Extracts RBAC/ACL/ABAC/Others permission checks from source code, diffs against your catalog, fails CI if unregistered. Model-agnostic via regex config.
+
+---
+
 Aegis is a high-performance authorization pattern scanner. It reads your source code, extracts every permission check  -- RBAC, ACL, ABAC, or custom  -- and tells you what's missing from your catalog. No more guessing which permissions your app needs.
 
 [![Rust](https://img.shields.io/badge/built%20with-Rust-orange)](https://www.rust-lang.org/)

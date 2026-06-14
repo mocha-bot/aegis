@@ -37,11 +37,23 @@ jobs:
         if: matrix.os != 'windows-latest'
         run: strip target/${{ matrix.target }}/release/aegis || true
 
+      # Rename the binary to its platform asset name BEFORE uploading, so the
+      # artifact's file (not just the artifact name) is unique. Otherwise every
+      # platform uploads a file called `aegis`/`aegis.exe`, and the release job's
+      # `merge-multiple: true` download collapses them onto one another.
+      - name: Package
+        shell: bash
+        run: |
+          src="target/${{ matrix.target }}/release/aegis${{ matrix.os == 'windows-latest' && '.exe' || '' }}"
+          mkdir -p dist
+          cp "$src" "dist/${{ matrix.asset_name }}"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.asset_name }}
-          path: target/${{ matrix.target }}/release/aegis${{ matrix.os == 'windows-latest' && '.exe' || '' }}
+          path: dist/${{ matrix.asset_name }}
+          if-no-files-found: error
 
   release:
     needs: build

@@ -2,7 +2,6 @@ name: release-plz
 
 on:
   push:
-    tags: ['v*']
     branches: [master]
 
 permissions:

@@ -1,0 +1,7 @@
+version: 1
+rules:
+  - id: go-check-any
+    files: ["**/*.go"]
+    patterns:
+      - regex: 'CheckAny\(.*?,\s*"(?P<object>[^"]+)",\s*"(?P<action>[^"]+)"\)'
+        level: api

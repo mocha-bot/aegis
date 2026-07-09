@@ -79,6 +79,10 @@ chmod +x aegis && sudo mv aegis /usr/local/bin/
 **Cargo:**
 
 ```bash
+cargo install aegis-policy
+```
+
+```bash
 cargo install --git https://github.com/mocha-bot/aegis
 ```
 

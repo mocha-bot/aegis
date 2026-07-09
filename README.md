@@ -121,8 +121,8 @@ Then:
 
 ```bash
 aegis scan                     # See what your code asks for
-aegis diff --api https://...   # Find unregistered permissions
-aegis lint --api https://...   # CI gate  -- fails if anything missing
+aegis diff --api https://...   # Find unregistered permissions (against an API)
+aegis lint                     # CI gate  -- fails if anything missing (baseline file)
 ```
 
 ## Commands
@@ -130,13 +130,39 @@ aegis lint --api https://...   # CI gate  -- fails if anything missing
 | Command | What it does |
 |---------|-------------|
 | `aegis scan` | Scan source code for permission usage |
-| `aegis diff --api <url>` | Show permissions found in code but missing from catalog |
-| `aegis lint --api <url>` | CI gate  -- exit 1 if any permission is unregistered |
+| `aegis diff` | Show permissions found in code but missing from the catalog |
+| `aegis lint` | CI gate  -- exit 1 if any permission is unregistered |
+
+`diff` and `lint` resolve the catalog from one of two sources:
+
+- `--api <url>` — fetch the live catalog from your authorization API
+- `--baseline <file>` — read a committed catalog file (for projects with no API)
+
+If you pass neither, Aegis falls back to a `.aegis.catalog.json` baseline file in the
+scan root. Passing both is an error.
+
+### Baseline file (no API required)
+
+Generate the baseline from your own scan output, commit it, and lint against it — no
+authorization service needed:
+
+```bash
+aegis scan --format catalog-json > .aegis.catalog.json   # generate + commit
+aegis lint                                                # default source: the baseline file
+aegis lint --baseline path/to/catalog.json               # explicit path
+```
+
+The baseline accepts either aegis `catalog-json` output
+(`{"permissions":[{"level_key","resource_key","action_key"}]}`) or the API catalog shape
+(`{"data":{"permissions":[{"key":"level:resource:action"}]}}`), so an API response saved
+to disk works as a baseline too. Runnable example: [`examples/baseline`](examples/baseline).
 
 ### Flags
 
 | Flag | Description |
 |------|-------------|
+| `--api <url>` | Authorization API base URL (`diff`/`lint`; mutually exclusive with `--baseline`) |
+| `--baseline <file>` | Local catalog file (`diff`/`lint`; mutually exclusive with `--api`) |
 | `--config <path>` | Path to `.aegis.yaml` (auto-discovered if omitted) |
 | `--root <path>` | Root directory to scan (default: cwd) |
 | `--format table\|csv\|json\|catalog-json` | Output format |
@@ -208,6 +234,8 @@ This turns `<Can any={[{object: "a:b", action: "c"}, {object: "d:e", action: "f"
 
 ## CI example
 
+Against a live authorization API:
+
 ```yaml
 # .github/workflows/rbac-lint.yml
 - name: Check permissions registered
@@ -215,7 +243,16 @@ This turns `<Can any={[{object: "a:b", action: "c"}, {object: "d:e", action: "f"
     aegis lint --api ${{ vars.AEGIS_API_URL }}
 ```
 
-Fails the build if any permission referenced in code is missing from the authorization catalog. Forces developers to register permissions before merging.
+Against a committed baseline file (no API — works in any repo):
+
+```yaml
+# .github/workflows/rbac-lint.yml
+- name: Check permissions registered
+  run: |
+    aegis lint --baseline .aegis.catalog.json
+```
+
+Fails the build if any permission referenced in code is missing from the catalog. Forces developers to register permissions before merging.
 
 ## License
 

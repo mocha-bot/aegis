@@ -1,0 +1,6 @@
+{
+  "permissions": [
+    { "level_key": "api", "resource_key": "api:packages", "action_key": "read" },
+    { "level_key": "api", "resource_key": "api:vouchers", "action_key": "create" }
+  ]
+}

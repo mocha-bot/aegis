@@ -7,8 +7,11 @@ mod scanner;
 
 use clap::Parser;
 use cli::{Cli, Commands, Format};
-use std::path::PathBuf;
+use std::collections::HashSet;
+use std::path::{Path, PathBuf};
 use std::process;
+
+const DEFAULT_BASELINE: &str = ".aegis.catalog.json";
 
 fn main() {
     let cli = Cli::parse();
@@ -18,6 +21,27 @@ fn main() {
         Err(e) => {
             eprintln!("Error: {}", e);
             process::exit(2);
+        }
+    }
+}
+
+fn resolve_registered(
+    api_url: Option<&str>,
+    baseline: Option<&str>,
+    root: &Path,
+) -> Result<HashSet<String>, String> {
+    match (api_url, baseline) {
+        (Some(_), Some(_)) => Err("provide either --api or --baseline, not both".to_string()),
+        (Some(url), None) => api::fetch_catalog_api(url),
+        (None, Some(path)) => api::load_catalog_file(path),
+        (None, None) => {
+            let default = root.join(DEFAULT_BASELINE);
+            api::load_catalog_file(&default.to_string_lossy()).map_err(|e| {
+                format!(
+                    "{}\nProvide --api <url>, --baseline <file>, or add a '{}' baseline file.",
+                    e, DEFAULT_BASELINE
+                )
+            })
         }
     }
 }
@@ -52,7 +76,12 @@ fn run(cli: Cli) -> Result<i32, Box<dyn std::error::Error>> {
             }
         }
 
-        Commands::Diff { api, config, root } => {
+        Commands::Diff {
+            api: api_url,
+            baseline,
+            config,
+            root,
+        } => {
             let root_path = root
                 .map(PathBuf::from)
                 .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
@@ -66,22 +95,25 @@ fn run(cli: Cli) -> Result<i32, Box<dyn std::error::Error>> {
             };
 
             let results = scanner::scan(&aegis_config, &root_path, &[]);
-            let unregistered = api::diff_against_catalog(&results, &api)
-                .map_err(|e| format!("Diff failed: {}", e))?;
+            let registered =
+                resolve_registered(api_url.as_deref(), baseline.as_deref(), &root_path)
+                    .map_err(|e| format!("Diff failed: {}", e))?;
+            let missing = api::unregistered(&results, &registered);
 
-            if unregistered.is_empty() {
+            if missing.is_empty() {
                 println!("All permissions registered in catalog.");
             } else {
                 println!(
                     "{} unregistered permission(s):\n{}",
-                    unregistered.len(),
-                    reporter::report_table(&unregistered)
+                    missing.len(),
+                    reporter::report_table(&missing)
                 );
             }
         }
 
         Commands::Lint {
-            api,
+            api: api_url,
+            baseline,
             config,
             root,
             ignore_rules,
@@ -99,18 +131,20 @@ fn run(cli: Cli) -> Result<i32, Box<dyn std::error::Error>> {
             };
 
             let results = scanner::scan(&aegis_config, &root_path, &ignore_rules);
-            let unregistered = api::diff_against_catalog(&results, &api)
-                .map_err(|e| format!("Lint failed: {}", e))?;
+            let registered =
+                resolve_registered(api_url.as_deref(), baseline.as_deref(), &root_path)
+                    .map_err(|e| format!("Lint failed: {}", e))?;
+            let missing = api::unregistered(&results, &registered);
 
-            if unregistered.is_empty() {
+            if missing.is_empty() {
                 println!("All permissions registered.");
                 return Ok(0);
             }
 
             eprintln!(
                 "{} unregistered permission(s):\n{}",
-                unregistered.len(),
-                reporter::report_table(&unregistered)
+                missing.len(),
+                reporter::report_table(&missing)
             );
             return Ok(1);
         }

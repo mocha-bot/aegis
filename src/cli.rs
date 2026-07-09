@@ -34,9 +34,13 @@ pub enum Commands {
 
     /// Show permissions used in code but missing from authorization catalog
     Diff {
-        /// Authorization API base URL
+        /// Authorization API base URL (mutually exclusive with --baseline)
         #[arg(long)]
-        api: String,
+        api: Option<String>,
+
+        /// Path to a local baseline catalog file (mutually exclusive with --api)
+        #[arg(long)]
+        baseline: Option<String>,
 
         /// Path to .aegis.yaml config file
         #[arg(short, long)]
@@ -49,9 +53,13 @@ pub enum Commands {
 
     /// CI gate — exit 1 if any permission used in code is missing from catalog
     Lint {
-        /// Authorization API base URL
+        /// Authorization API base URL (mutually exclusive with --baseline)
         #[arg(long)]
-        api: String,
+        api: Option<String>,
+
+        /// Path to a local baseline catalog file (mutually exclusive with --api)
+        #[arg(long)]
+        baseline: Option<String>,
 
         /// Path to .aegis.yaml config file
         #[arg(short, long)]

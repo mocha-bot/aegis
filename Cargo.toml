@@ -1,9 +1,32 @@
 [package]
-name = "aegis"
-version = "0.0.1"
+name = "aegis-policy"
+version = "0.2.0"
 edition = "2021"
 authors = ["Muhammad Wildan Aldiansyah <aldiwild77@gmail.com>"]
-description = "Agnostic authorization pattern scanner"
+description = "CLI for detecting permission misconfigurations and enforcing custom policy rules across source code and configuration files."
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/mocha-bot/aegis"
+readme = "README.md"
+
+keywords = [
+    "policy",
+    "security",
+    "regex",
+    "scanner",
+    "permissions",
+]
+
+categories = [
+    "command-line-utilities",
+    "development-tools",
+]
+
+exclude = [
+    ".github/",
+    "docs/",
+    "examples/",
+    ".aegis.yaml",
+]
 
 [[bin]]
 name = "aegis"

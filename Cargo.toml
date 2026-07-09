@@ -25,6 +25,7 @@ exclude = [
     ".github/",
     "docs/",
     "examples/",
+    ".aegis.yaml",
 ]
 
 [[bin]]

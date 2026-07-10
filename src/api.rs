@@ -52,6 +52,17 @@ pub fn unregistered(results: &[ScanResult], registered: &HashSet<String>) -> Vec
         .collect()
 }
 
+pub fn removed(results: &[ScanResult], registered: &HashSet<String>) -> Vec<String> {
+    let in_code: HashSet<String> = results.iter().map(result_key).collect();
+    let mut gone: Vec<String> = registered
+        .iter()
+        .filter(|k| !in_code.contains(*k))
+        .cloned()
+        .collect();
+    gone.sort();
+    gone
+}
+
 fn parse_catalog(value: &Value) -> Option<HashSet<String>> {
     let perms = value
         .get("permissions")
@@ -207,5 +218,39 @@ mod tests {
         registered.insert("api:packages:read".to_string());
 
         assert!(unregistered(&results, &registered).is_empty());
+    }
+
+    #[test]
+    fn removed_returns_catalog_keys_absent_from_code() {
+        let results = vec![result("api", "packages", "read")];
+        let mut registered = HashSet::new();
+        registered.insert("api:packages:read".to_string());
+        registered.insert("api:vouchers:create".to_string());
+
+        let gone = removed(&results, &registered);
+        assert_eq!(gone, vec!["api:vouchers:create".to_string()]);
+    }
+
+    #[test]
+    fn removed_empty_when_all_present_in_code() {
+        let results = vec![result("api", "packages", "read")];
+        let mut registered = HashSet::new();
+        registered.insert("api:packages:read".to_string());
+
+        assert!(removed(&results, &registered).is_empty());
+    }
+
+    #[test]
+    fn removed_output_is_sorted() {
+        let results: Vec<ScanResult> = vec![];
+        let mut registered = HashSet::new();
+        registered.insert("api:zebra:read".to_string());
+        registered.insert("api:apple:read".to_string());
+
+        let gone = removed(&results, &registered);
+        assert_eq!(
+            gone,
+            vec!["api:apple:read".to_string(), "api:zebra:read".to_string()]
+        );
     }
 }

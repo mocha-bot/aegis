@@ -8,10 +8,16 @@ mod scanner;
 use clap::Parser;
 use cli::{Cli, Commands, Format};
 use std::collections::HashSet;
+use std::io::IsTerminal;
 use std::path::{Path, PathBuf};
 use std::process;
 
 const DEFAULT_BASELINE: &str = ".aegis.catalog.json";
+
+/// Color output when the target stream is a terminal and NO_COLOR is unset.
+fn color_enabled(stream_is_terminal: bool) -> bool {
+    stream_is_terminal && std::env::var_os("NO_COLOR").is_none()
+}
 
 fn main() {
     let cli = Cli::parse();
@@ -98,16 +104,14 @@ fn run(cli: Cli) -> Result<i32, Box<dyn std::error::Error>> {
             let registered =
                 resolve_registered(api_url.as_deref(), baseline.as_deref(), &root_path)
                     .map_err(|e| format!("Diff failed: {}", e))?;
-            let missing = api::unregistered(&results, &registered);
+            let added = api::unregistered(&results, &registered);
+            let gone = api::removed(&results, &registered);
 
-            if missing.is_empty() {
+            if added.is_empty() && gone.is_empty() {
                 println!("All permissions registered in catalog.");
             } else {
-                println!(
-                    "{} unregistered permission(s):\n{}",
-                    missing.len(),
-                    reporter::report_table(&missing)
-                );
+                let color = color_enabled(std::io::stdout().is_terminal());
+                println!("{}", reporter::report_diff(&added, &gone, color));
             }
         }
 
@@ -134,18 +138,21 @@ fn run(cli: Cli) -> Result<i32, Box<dyn std::error::Error>> {
             let registered =
                 resolve_registered(api_url.as_deref(), baseline.as_deref(), &root_path)
                     .map_err(|e| format!("Lint failed: {}", e))?;
-            let missing = api::unregistered(&results, &registered);
+            let added = api::unregistered(&results, &registered);
+            let gone = api::removed(&results, &registered);
 
-            if missing.is_empty() {
-                println!("All permissions registered.");
+            if added.is_empty() {
+                if gone.is_empty() {
+                    println!("All permissions registered.");
+                } else {
+                    let color = color_enabled(std::io::stdout().is_terminal());
+                    println!("{}", reporter::report_diff(&added, &gone, color));
+                }
                 return Ok(0);
             }
 
-            eprintln!(
-                "{} unregistered permission(s):\n{}",
-                missing.len(),
-                reporter::report_table(&missing)
-            );
+            let color = color_enabled(std::io::stderr().is_terminal());
+            eprintln!("{}", reporter::report_diff(&added, &gone, color));
             return Ok(1);
         }
     }

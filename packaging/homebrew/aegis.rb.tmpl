@@ -1,0 +1,32 @@
+class Aegis < Formula
+  desc "Agnostic authorization pattern scanner — diff code permissions against your catalog"
+  homepage "https://github.com/mocha-bot/aegis"
+  version "@VERSION@"
+  license "MIT OR Apache-2.0"
+
+  on_macos do
+    on_arm do
+      url "https://github.com/mocha-bot/aegis/releases/download/v@VERSION@/aegis-macos-arm64"
+      sha256 "@SHA_MACOS_ARM64@"
+    end
+    on_intel do
+      url "https://github.com/mocha-bot/aegis/releases/download/v@VERSION@/aegis-macos-amd64"
+      sha256 "@SHA_MACOS_AMD64@"
+    end
+  end
+
+  on_linux do
+    on_intel do
+      url "https://github.com/mocha-bot/aegis/releases/download/v@VERSION@/aegis-linux-amd64"
+      sha256 "@SHA_LINUX_AMD64@"
+    end
+  end
+
+  def install
+    bin.install Dir["aegis-*"].first => "aegis"
+  end
+
+  test do
+    assert_match "aegis", shell_output("#{bin}/aegis --version")
+  end
+end

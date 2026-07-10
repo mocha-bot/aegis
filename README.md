@@ -61,7 +61,26 @@ Any language. Any pattern. One config file.
 
 ## Install
 
-**Pre-built binary** (Linux, macOS, Windows):
+**Install script** (Linux, macOS — detects OS/arch, verifies checksum):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/mocha-bot/aegis/master/install.sh | sh
+```
+
+Pin a version or install dir with env vars:
+
+```bash
+AEGIS_VERSION=v0.2.2 AEGIS_INSTALL_DIR=~/.local/bin \
+  curl -fsSL https://raw.githubusercontent.com/mocha-bot/aegis/master/install.sh | sh
+```
+
+**Homebrew** (macOS, Linux):
+
+```bash
+brew install mocha-bot/tap/aegis
+```
+
+**Pre-built binary** — download directly (Linux, macOS, Windows):
 
 ```bash
 # macOS arm64
@@ -75,6 +94,8 @@ curl -fsSL https://github.com/mocha-bot/aegis/releases/latest/download/aegis-win
 
 chmod +x aegis && sudo mv aegis /usr/local/bin/
 ```
+
+Each release also ships a `SHA256SUMS` file to verify downloads.
 
 **Cargo:**
 

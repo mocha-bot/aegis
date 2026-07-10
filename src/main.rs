@@ -98,16 +98,13 @@ fn run(cli: Cli) -> Result<i32, Box<dyn std::error::Error>> {
             let registered =
                 resolve_registered(api_url.as_deref(), baseline.as_deref(), &root_path)
                     .map_err(|e| format!("Diff failed: {}", e))?;
-            let missing = api::unregistered(&results, &registered);
+            let added = api::unregistered(&results, &registered);
+            let gone = api::removed(&results, &registered);
 
-            if missing.is_empty() {
+            if added.is_empty() && gone.is_empty() {
                 println!("All permissions registered in catalog.");
             } else {
-                println!(
-                    "{} unregistered permission(s):\n{}",
-                    missing.len(),
-                    reporter::report_table(&missing)
-                );
+                println!("{}", reporter::report_diff(&added, &gone));
             }
         }
 
@@ -134,18 +131,19 @@ fn run(cli: Cli) -> Result<i32, Box<dyn std::error::Error>> {
             let registered =
                 resolve_registered(api_url.as_deref(), baseline.as_deref(), &root_path)
                     .map_err(|e| format!("Lint failed: {}", e))?;
-            let missing = api::unregistered(&results, &registered);
+            let added = api::unregistered(&results, &registered);
+            let gone = api::removed(&results, &registered);
 
-            if missing.is_empty() {
-                println!("All permissions registered.");
+            if added.is_empty() {
+                if gone.is_empty() {
+                    println!("All permissions registered.");
+                } else {
+                    println!("{}", reporter::report_diff(&added, &gone));
+                }
                 return Ok(0);
             }
 
-            eprintln!(
-                "{} unregistered permission(s):\n{}",
-                missing.len(),
-                reporter::report_table(&missing)
-            );
+            eprintln!("{}", reporter::report_diff(&added, &gone));
             return Ok(1);
         }
     }

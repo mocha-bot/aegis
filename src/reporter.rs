@@ -60,7 +60,19 @@ pub fn report_catalog_json(results: &[ScanResult]) -> String {
     .unwrap_or_else(|_| "{}".to_string())
 }
 
-pub fn report_diff(added: &[ScanResult], removed: &[String]) -> String {
+const GREEN: &str = "\x1b[32m";
+const RED: &str = "\x1b[31m";
+const RESET: &str = "\x1b[0m";
+
+pub fn report_diff(added: &[ScanResult], removed: &[String], color: bool) -> String {
+    let paint = |line: String, code: &str| {
+        if color {
+            format!("{}{}{}", code, line, RESET)
+        } else {
+            line
+        }
+    };
+
     let mut out = format!("{} permission change(s):\n", added.len() + removed.len());
 
     let mut added_lines: Vec<String> = added
@@ -74,12 +86,13 @@ pub fn report_diff(added: &[ScanResult], removed: &[String]) -> String {
         .collect();
     added_lines.sort();
     for line in added_lines {
-        out.push_str(&line);
+        out.push_str(&paint(line, GREEN));
         out.push('\n');
     }
 
     for key in removed {
-        out.push_str(&format!("- {}\n", key));
+        out.push_str(&paint(format!("- {}", key), RED));
+        out.push('\n');
     }
 
     out
@@ -176,7 +189,7 @@ mod tests {
         let added = vec![added_result("vouchers", 5)];
         let removed = vec!["api:packages:read".to_string()];
 
-        let out = report_diff(&added, &removed);
+        let out = report_diff(&added, &removed, false);
         assert!(out.contains("2 permission change(s):"));
         assert!(out.contains("+ api:vouchers:create"));
         assert!(out.contains("handler.go:5"));
@@ -186,7 +199,7 @@ mod tests {
     #[test]
     fn test_report_diff_added_only() {
         let added = vec![added_result("vouchers", 5)];
-        let out = report_diff(&added, &[]);
+        let out = report_diff(&added, &[], false);
         assert!(out.contains("1 permission change(s):"));
         assert!(out.contains("+ api:vouchers:create"));
         assert!(!out.contains("- "));
@@ -195,7 +208,7 @@ mod tests {
     #[test]
     fn test_report_diff_removed_only() {
         let removed = vec!["api:packages:read".to_string()];
-        let out = report_diff(&[], &removed);
+        let out = report_diff(&[], &removed, false);
         assert!(out.contains("1 permission change(s):"));
         assert!(out.contains("- api:packages:read"));
         assert!(!out.contains("+ "));
@@ -204,9 +217,30 @@ mod tests {
     #[test]
     fn test_report_diff_added_sorted_by_key() {
         let added = vec![added_result("zebra", 1), added_result("apple", 2)];
-        let out = report_diff(&added, &[]);
+        let out = report_diff(&added, &[], false);
         let apple = out.find("apple").unwrap();
         let zebra = out.find("zebra").unwrap();
         assert!(apple < zebra);
+    }
+
+    #[test]
+    fn test_report_diff_no_color_has_no_ansi() {
+        let added = vec![added_result("vouchers", 5)];
+        let removed = vec!["api:packages:read".to_string()];
+        let out = report_diff(&added, &removed, false);
+        assert!(!out.contains('\x1b'));
+    }
+
+    #[test]
+    fn test_report_diff_color_wraps_lines() {
+        let added = vec![added_result("vouchers", 5)];
+        let removed = vec!["api:packages:read".to_string()];
+        let out = report_diff(&added, &removed, true);
+        // green + line, red - line, reset after each
+        assert!(out.contains("\x1b[32m+ api:vouchers:create"));
+        assert!(out.contains("\x1b[31m- api:packages:read"));
+        assert!(out.contains("\x1b[0m"));
+        // summary line stays uncolored
+        assert!(out.starts_with("2 permission change(s):"));
     }
 }

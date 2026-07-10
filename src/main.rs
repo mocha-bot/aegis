@@ -8,10 +8,16 @@ mod scanner;
 use clap::Parser;
 use cli::{Cli, Commands, Format};
 use std::collections::HashSet;
+use std::io::IsTerminal;
 use std::path::{Path, PathBuf};
 use std::process;
 
 const DEFAULT_BASELINE: &str = ".aegis.catalog.json";
+
+/// Color output when the target stream is a terminal and NO_COLOR is unset.
+fn color_enabled(stream_is_terminal: bool) -> bool {
+    stream_is_terminal && std::env::var_os("NO_COLOR").is_none()
+}
 
 fn main() {
     let cli = Cli::parse();
@@ -104,7 +110,8 @@ fn run(cli: Cli) -> Result<i32, Box<dyn std::error::Error>> {
             if added.is_empty() && gone.is_empty() {
                 println!("All permissions registered in catalog.");
             } else {
-                println!("{}", reporter::report_diff(&added, &gone));
+                let color = color_enabled(std::io::stdout().is_terminal());
+                println!("{}", reporter::report_diff(&added, &gone, color));
             }
         }
 
@@ -138,12 +145,14 @@ fn run(cli: Cli) -> Result<i32, Box<dyn std::error::Error>> {
                 if gone.is_empty() {
                     println!("All permissions registered.");
                 } else {
-                    println!("{}", reporter::report_diff(&added, &gone));
+                    let color = color_enabled(std::io::stdout().is_terminal());
+                    println!("{}", reporter::report_diff(&added, &gone, color));
                 }
                 return Ok(0);
             }
 
-            eprintln!("{}", reporter::report_diff(&added, &gone));
+            let color = color_enabled(std::io::stderr().is_terminal());
+            eprintln!("{}", reporter::report_diff(&added, &gone, color));
             return Ok(1);
         }
     }

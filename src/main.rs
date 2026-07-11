@@ -89,8 +89,9 @@ fn run(cli: Cli) -> Result<i32, Box<dyn std::error::Error>> {
 
             if let Some(path) = save_path {
                 let catalog = reporter::report_catalog_json(&results);
-                std::fs::write(&path, format!("{}\n", catalog))
-                    .map_err(|e| format!("Failed to write catalog to '{}': {}", path.display(), e))?;
+                std::fs::write(&path, format!("{}\n", catalog)).map_err(|e| {
+                    format!("Failed to write catalog to '{}': {}", path.display(), e)
+                })?;
                 println!("Saved catalog to {}", path.display());
             } else {
                 match format {

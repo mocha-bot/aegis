@@ -31,9 +31,14 @@ fn main() {
     }
 }
 
+fn catalog_path(config_catalog: Option<&str>, root: &Path) -> PathBuf {
+    root.join(config_catalog.unwrap_or(DEFAULT_BASELINE))
+}
+
 fn resolve_registered(
     api_url: Option<&str>,
     baseline: Option<&str>,
+    config_catalog: Option<&str>,
     root: &Path,
 ) -> Result<HashSet<String>, String> {
     match (api_url, baseline) {
@@ -41,11 +46,12 @@ fn resolve_registered(
         (Some(url), None) => api::fetch_catalog_api(url),
         (None, Some(path)) => api::load_catalog_file(path),
         (None, None) => {
-            let default = root.join(DEFAULT_BASELINE);
+            let default = catalog_path(config_catalog, root);
             api::load_catalog_file(&default.to_string_lossy()).map_err(|e| {
                 format!(
                     "{}\nProvide --api <url>, --baseline <file>, or add a '{}' baseline file.",
-                    e, DEFAULT_BASELINE
+                    e,
+                    default.display()
                 )
             })
         }
@@ -59,6 +65,7 @@ fn run(cli: Cli) -> Result<i32, Box<dyn std::error::Error>> {
             root,
             format,
             ignore_rules,
+            save,
         } => {
             let root_path = root
                 .map(PathBuf::from)
@@ -74,11 +81,26 @@ fn run(cli: Cli) -> Result<i32, Box<dyn std::error::Error>> {
 
             let results = scanner::scan(&aegis_config, &root_path, &ignore_rules);
 
-            match format {
-                Format::Table => println!("{}", reporter::report_table(&results)),
-                Format::Csv => println!("{}", reporter::report_csv(&results)),
-                Format::Json => println!("{}", reporter::report_json(&results)),
-                Format::CatalogJson => println!("{}", reporter::report_catalog_json(&results)),
+            let save_path: Option<PathBuf> = match save {
+                None => None,
+                Some(None) => Some(catalog_path(aegis_config.catalog.as_deref(), &root_path)),
+                Some(Some(p)) => Some(PathBuf::from(p)),
+            };
+
+            if let Some(path) = save_path {
+                let catalog = reporter::report_catalog_json(&results);
+                std::fs::write(&path, format!("{}\n", catalog))
+                    .map_err(|e| format!("Failed to write catalog to '{}': {}", path.display(), e))?;
+                println!("Saved catalog to {}", path.display());
+            } else {
+                match format {
+                    Format::Table => println!("{}", reporter::report_table(&results)),
+                    Format::Csv => println!("{}", reporter::report_csv(&results)),
+                    Format::Json => println!("{}", reporter::report_json(&results)),
+                    Format::CatalogJson => {
+                        println!("{}", reporter::report_catalog_json(&results))
+                    }
+                }
             }
         }
 
@@ -101,9 +123,13 @@ fn run(cli: Cli) -> Result<i32, Box<dyn std::error::Error>> {
             };
 
             let results = scanner::scan(&aegis_config, &root_path, &[]);
-            let registered =
-                resolve_registered(api_url.as_deref(), baseline.as_deref(), &root_path)
-                    .map_err(|e| format!("Diff failed: {}", e))?;
+            let registered = resolve_registered(
+                api_url.as_deref(),
+                baseline.as_deref(),
+                aegis_config.catalog.as_deref(),
+                &root_path,
+            )
+            .map_err(|e| format!("Diff failed: {}", e))?;
             let added = api::unregistered(&results, &registered);
             let gone = api::removed(&results, &registered);
 
@@ -135,9 +161,13 @@ fn run(cli: Cli) -> Result<i32, Box<dyn std::error::Error>> {
             };
 
             let results = scanner::scan(&aegis_config, &root_path, &ignore_rules);
-            let registered =
-                resolve_registered(api_url.as_deref(), baseline.as_deref(), &root_path)
-                    .map_err(|e| format!("Lint failed: {}", e))?;
+            let registered = resolve_registered(
+                api_url.as_deref(),
+                baseline.as_deref(),
+                aegis_config.catalog.as_deref(),
+                &root_path,
+            )
+            .map_err(|e| format!("Lint failed: {}", e))?;
             let added = api::unregistered(&results, &registered);
             let gone = api::removed(&results, &registered);
 

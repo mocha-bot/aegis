@@ -94,6 +94,7 @@ mod tests {
     fn test_config() -> AegisConfig {
         AegisConfig {
             version: 1,
+            catalog: None,
             rules: vec![
                 ScanRule {
                     id: "react-can".to_string(),

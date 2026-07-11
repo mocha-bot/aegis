@@ -151,10 +151,15 @@ Generate the baseline from your own scan output, commit it, and lint against it 
 authorization service needed:
 
 ```bash
-aegis scan --format catalog-json > .aegis.catalog.json   # generate + commit
+aegis scan --save                                         # write .aegis.catalog.json + commit
+aegis scan --save path/to/catalog.json                    # explicit path
+aegis scan --format catalog-json > .aegis.catalog.json    # equivalent, via redirect
 aegis lint                                                # default source: the baseline file
 aegis lint --baseline path/to/catalog.json               # explicit path
 ```
+
+`--save` writes sorted `catalog-json` (stable output — clean git diffs). Bare `--save`
+defaults to `.aegis.catalog.json`, the path `lint`/`diff` auto-read.
 
 The baseline accepts either aegis `catalog-json` output
 (`{"permissions":[{"level_key","resource_key","action_key"}]}`) or the API catalog shape
@@ -210,6 +215,7 @@ Every match becomes a row: `(level, resource, action, file, line, rule_id)`.
 
 ```yaml
 version: 1
+catalog: config/permissions.json # optional: remembered catalog path (alias)
 rules:
   - id: my-rule                 # unique identifier
     files:                       # glob patterns to match
@@ -221,6 +227,20 @@ rules:
         capture_mode: repeated   # optional: "single" (default) or "repeated"
         sub_pattern: '...'       # required for repeated mode: inner extraction regex
 ```
+
+### `catalog` — remember the catalog path
+
+Set `catalog:` to alias your baseline file once, and `scan --save`, `lint`, and `diff`
+all use it automatically — no per-command flag:
+
+```bash
+aegis scan --save   # writes to config/permissions.json
+aegis lint          # reads config/permissions.json
+aegis diff          # reads config/permissions.json
+```
+
+Resolution precedence: CLI flag (`--save` / `--baseline`) → config `catalog` →
+default `.aegis.catalog.json`.
 
 `capture_mode: repeated` is for components that contain multiple permissions in a single block:
 

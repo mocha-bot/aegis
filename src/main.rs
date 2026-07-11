@@ -59,6 +59,7 @@ fn run(cli: Cli) -> Result<i32, Box<dyn std::error::Error>> {
             root,
             format,
             ignore_rules,
+            save,
         } => {
             let root_path = root
                 .map(PathBuf::from)
@@ -74,11 +75,20 @@ fn run(cli: Cli) -> Result<i32, Box<dyn std::error::Error>> {
 
             let results = scanner::scan(&aegis_config, &root_path, &ignore_rules);
 
-            match format {
-                Format::Table => println!("{}", reporter::report_table(&results)),
-                Format::Csv => println!("{}", reporter::report_csv(&results)),
-                Format::Json => println!("{}", reporter::report_json(&results)),
-                Format::CatalogJson => println!("{}", reporter::report_catalog_json(&results)),
+            if let Some(path) = save {
+                let catalog = reporter::report_catalog_json(&results);
+                std::fs::write(&path, format!("{}\n", catalog))
+                    .map_err(|e| format!("Failed to write catalog to '{}': {}", path, e))?;
+                println!("Saved catalog to {}", path);
+            } else {
+                match format {
+                    Format::Table => println!("{}", reporter::report_table(&results)),
+                    Format::Csv => println!("{}", reporter::report_csv(&results)),
+                    Format::Json => println!("{}", reporter::report_json(&results)),
+                    Format::CatalogJson => {
+                        println!("{}", reporter::report_catalog_json(&results))
+                    }
+                }
             }
         }
 

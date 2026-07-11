@@ -151,10 +151,15 @@ Generate the baseline from your own scan output, commit it, and lint against it 
 authorization service needed:
 
 ```bash
-aegis scan --format catalog-json > .aegis.catalog.json   # generate + commit
+aegis scan --save                                         # write .aegis.catalog.json + commit
+aegis scan --save path/to/catalog.json                    # explicit path
+aegis scan --format catalog-json > .aegis.catalog.json    # equivalent, via redirect
 aegis lint                                                # default source: the baseline file
 aegis lint --baseline path/to/catalog.json               # explicit path
 ```
+
+`--save` writes sorted `catalog-json` (stable output — clean git diffs). Bare `--save`
+defaults to `.aegis.catalog.json`, the path `lint`/`diff` auto-read.
 
 The baseline accepts either aegis `catalog-json` output
 (`{"permissions":[{"level_key","resource_key","action_key"}]}`) or the API catalog shape

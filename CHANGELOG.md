@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.4](https://github.com/mocha-bot/aegis/compare/v0.2.3...v0.2.4) - 2026-07-11
+
+### Features
+
+- scan --save + rememberable catalog path ([#12](https://github.com/mocha-bot/aegis/pull/12))
+
 ## [0.2.3](https://github.com/mocha-bot/aegis/compare/v0.2.2...v0.2.3) - 2026-07-10
 
 ### Features

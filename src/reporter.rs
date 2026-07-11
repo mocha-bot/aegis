@@ -40,19 +40,25 @@ pub fn report_json(results: &[ScanResult]) -> String {
 }
 
 pub fn report_catalog_json(results: &[ScanResult]) -> String {
-    let mut perms: Vec<serde_json::Value> = Vec::new();
     let mut seen = std::collections::HashSet::new();
+    let mut entries: Vec<(String, serde_json::Value)> = Vec::new();
 
     for r in results {
         let key = format!("{}:{}:{}", r.level, r.resource, r.action);
         if seen.insert(key.clone()) {
-            perms.push(serde_json::json!({
-                "level_key": r.level,
-                "resource_key": r.resource,
-                "action_key": r.action,
-            }));
+            entries.push((
+                key,
+                serde_json::json!({
+                    "level_key": r.level,
+                    "resource_key": r.resource,
+                    "action_key": r.action,
+                }),
+            ));
         }
     }
+
+    entries.sort_by(|a, b| a.0.cmp(&b.0));
+    let perms: Vec<serde_json::Value> = entries.into_iter().map(|(_, v)| v).collect();
 
     serde_json::to_string_pretty(&serde_json::json!({
         "permissions": perms
@@ -171,6 +177,34 @@ mod tests {
         let perms = parsed["permissions"].as_array().unwrap();
         // Deduped — only 2 unique permission keys
         assert_eq!(perms.len(), 2);
+    }
+
+    #[test]
+    fn test_catalog_json_sorted() {
+        let results = vec![
+            ScanResult {
+                level: "api".to_string(),
+                resource: "zebra".to_string(),
+                action: "read".to_string(),
+                source_file: "z.go".to_string(),
+                source_line: 1,
+                rule_id: "r".to_string(),
+            },
+            ScanResult {
+                level: "api".to_string(),
+                resource: "apple".to_string(),
+                action: "read".to_string(),
+                source_file: "a.go".to_string(),
+                source_line: 2,
+                rule_id: "r".to_string(),
+            },
+        ];
+
+        let out = report_catalog_json(&results);
+        let parsed: serde_json::Value = serde_json::from_str(&out).unwrap();
+        let perms = parsed["permissions"].as_array().unwrap();
+        assert_eq!(perms[0]["resource_key"], "apple");
+        assert_eq!(perms[1]["resource_key"], "zebra");
     }
 
     fn added_result(resource: &str, line: usize) -> ScanResult {

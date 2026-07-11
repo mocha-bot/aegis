@@ -215,6 +215,7 @@ Every match becomes a row: `(level, resource, action, file, line, rule_id)`.
 
 ```yaml
 version: 1
+catalog: config/permissions.json # optional: remembered catalog path (alias)
 rules:
   - id: my-rule                 # unique identifier
     files:                       # glob patterns to match
@@ -226,6 +227,20 @@ rules:
         capture_mode: repeated   # optional: "single" (default) or "repeated"
         sub_pattern: '...'       # required for repeated mode: inner extraction regex
 ```
+
+### `catalog` — remember the catalog path
+
+Set `catalog:` to alias your baseline file once, and `scan --save`, `lint`, and `diff`
+all use it automatically — no per-command flag:
+
+```bash
+aegis scan --save   # writes to config/permissions.json
+aegis lint          # reads config/permissions.json
+aegis diff          # reads config/permissions.json
+```
+
+Resolution precedence: CLI flag (`--save` / `--baseline`) → config `catalog` →
+default `.aegis.catalog.json`.
 
 `capture_mode: repeated` is for components that contain multiple permissions in a single block:
 

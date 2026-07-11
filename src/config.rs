@@ -16,6 +16,8 @@ pub enum ConfigError {
 pub struct AegisConfig {
     #[allow(dead_code)]
     pub version: u8,
+    #[serde(default)]
+    pub catalog: Option<String>,
     pub rules: Vec<ScanRule>,
 }
 
@@ -89,6 +91,37 @@ rules:
             config.rules[0].patterns[0].capture_mode,
             CaptureMode::Single
         );
+    }
+
+    #[test]
+    fn test_parse_catalog_alias() {
+        let yaml = r#"
+version: 1
+catalog: config/permissions.json
+rules:
+  - id: test-rule
+    files: ["**/*.go"]
+    patterns:
+      - regex: 'x'
+        level: api
+"#;
+        let config: AegisConfig = serde_yaml::from_str(yaml).unwrap();
+        assert_eq!(config.catalog.as_deref(), Some("config/permissions.json"));
+    }
+
+    #[test]
+    fn test_parse_catalog_defaults_none() {
+        let yaml = r#"
+version: 1
+rules:
+  - id: test-rule
+    files: ["**/*.go"]
+    patterns:
+      - regex: 'x'
+        level: api
+"#;
+        let config: AegisConfig = serde_yaml::from_str(yaml).unwrap();
+        assert!(config.catalog.is_none());
     }
 
     #[test]

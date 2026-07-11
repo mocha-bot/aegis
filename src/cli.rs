@@ -31,9 +31,10 @@ pub enum Commands {
         #[arg(long = "ignore-rule")]
         ignore_rules: Vec<String>,
 
-        /// Write catalog-json to a file instead of stdout (defaults to .aegis.catalog.json)
-        #[arg(long, num_args = 0..=1, default_missing_value = ".aegis.catalog.json")]
-        save: Option<String>,
+        /// Write catalog-json to a file instead of stdout (path defaults to the
+        /// configured catalog, or .aegis.catalog.json)
+        #[arg(long, num_args = 0..=1)]
+        save: Option<Option<String>>,
     },
 
     /// Show permissions used in code but missing from authorization catalog
